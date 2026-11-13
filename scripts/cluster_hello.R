@@ -1,3 +1,4 @@
+# Author: Zainab Shahzad
 # scripts/cluster_hello.R: bootstrap a synthetic GPP series
 args <- commandArgs(trailingOnly = TRUE)
 n_boot <- 5000L
