@@ -200,3 +200,4 @@ R and Python packages are listed at the top of each script and in [`scripts/bloc
 Course material: see [LICENSE](LICENSE).
 
 The FLUXNET data in `flux4student/` are CC-BY-4.0 with citation requirements per site; see [`flux4student/README.md`](flux4student/README.md). When you use flux data, cite each site's data product, Pastorello et al. (2020), *Scientific Data* 7, 225, <https://doi.org/10.1038/s41597-020-0534-3>, and include the FLUXNET acknowledgement given there. The Block 5 datasets each have their own citation, listed in the header of every script.
+quarto render block4_report.qmd

@@ -1,0 +1,247 @@
+---
+title: "Block 4: Five-Tower FLUXNET Data Summary"
+author: "Zainab Shahzad"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(ggplot2)
+library(knitr)
+
+my_sites <- c("JP-Yms", "US-NC2", "CN-BeO", "NZ-Lau", "DE-RuM")
+
+towers <- read_csv("tower_sets_block4.csv", show_col_types = FALSE) |>
+  filter(student_no == "28" | student_no == 28)
+```
+
+## 1. Site Overview
+
+```{r site-table}
+towers |>
+  select(site_id, site_name, igbp, lat, lon, first_year, last_year, hub, citation) |>
+  kable(
+    col.names = c("ID", "Name", "IGBP", "Lat", "Lon", "Start", "End", "Hub", "Citation")
+  )
+```
+
+```{r site-map, fig.width=8, fig.height=4.5}
+world <- map_data("world")
+
+ggplot() +
+  geom_polygon(data = world, aes(x = long, y = lat, group = group),
+               fill = "grey90", color = "white", linewidth = 0.2) +
+  geom_point(data = towers, aes(x = lon, y = lat, color = igbp), size = 3.5) +
+  geom_text(data = towers, aes(x = lon, y = lat, label = site_id),
+            vjust = -0.8, size = 3.5, fontface = "bold") +
+  coord_fixed(1.2) +
+  labs(title = "Assigned FLUXNET Towers (Set 28)",
+       x = "Longitude (degrees)", y = "Latitude (degrees)", color = "IGBP") +
+  theme_minimal()
+```
+
+```{r load-all-sites}
+needed_cols <- c(
+  "TIMESTAMP_START", "TIMESTAMP_END",
+  "TA_F", "SW_IN_F", "VPD_F", "P_F",
+  "NEE_VUT_REF", "NEE_VUT_REF_QC",
+  "GPP_NT_VUT_REF", "RECO_NT_VUT_REF",
+  "H_F_MDS", "LE_F_MDS", "NETRAD", "G_F_MDS"
+)
+
+read_site_hh <- function(site) {
+  zip_path <- list.files("data/raw", pattern = paste0("_", site, "_FLUXNET_.*\\.zip"), full.names = TRUE)
+  hh_name  <- grep("FLUXMET_HH", unzip(zip_path[1], list = TRUE)[["Name"]], value = TRUE)
+
+  df <- read_csv(
+    unz(zip_path[1], hh_name[1]),
+    na = "-9999",
+    col_select = any_of(needed_cols),
+    col_types = cols(TIMESTAMP_START = "c", TIMESTAMP_END = "c"),
+    show_col_types = FALSE
+  )
+
+  df |>
+    mutate(
+      site_id = site,
+      time    = as.POSIXct(TIMESTAMP_START, format = "%Y%m%d%H%M", tz = "UTC"),
+      year    = year(time),
+      date    = as.Date(time),
+      hour    = hour(time) + minute(time) / 60
+    )
+}
+
+all_hh <- bind_rows(lapply(my_sites, read_site_hh))
+
+all_hh |>
+  group_by(site_id) |>
+  summarise(
+    rows = n(),
+    n_years = n_distinct(year),
+    dup_timestamps = anyDuplicated(time),
+    .groups = "drop"
+  ) |>
+  kable(caption = "Half-hourly record check across all five sites")
+```
+
+## 2. Data Coverage
+
+```{r coverage-heatmap, fig.width=9, fig.height=4.5}
+qc_summary <- all_hh |>
+  group_by(site_id, year) |>
+  summarise(share_qc0 = mean(NEE_VUT_REF_QC == 0, na.rm = TRUE), .groups = "drop")
+
+ggplot(qc_summary, aes(x = factor(year), y = site_id, fill = share_qc0 * 100)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(name = "Measured NEE\n(QC = 0, %)", limits = c(0, 100)) +
+  labs(
+    title = "Share of Measured Half-Hourly NEE (NEE_VUT_REF_QC == 0)",
+    x = "Year",
+    y = "Site ID"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## 3. Summary Statistics
+
+```{r summary-stats}
+stats_vars <- c(
+  "TA_F", "SW_IN_F", "VPD_F", "P_F",
+  "NEE_VUT_REF", "GPP_NT_VUT_REF", "RECO_NT_VUT_REF",
+  "H_F_MDS", "LE_F_MDS"
+)
+
+summary_tbl <- all_hh |>
+  select(site_id, any_of(stats_vars)) |>
+  pivot_longer(-site_id, names_to = "variable", values_to = "value") |>
+  group_by(site_id, variable) |>
+  summarise(
+    mean = round(mean(value, na.rm = TRUE), 2),
+    min  = round(min(value, na.rm = TRUE), 2),
+    max  = round(max(value, na.rm = TRUE), 2),
+    pct_missing = round(mean(is.na(value)) * 100, 2),
+    .groups = "drop"
+  )
+
+kable(summary_tbl, caption = "Summary statistics (mean, min, max, % missing) for meteorological and flux variables")
+```
+
+## 4. Daily Time Series
+
+```{r daily-timeseries, fig.width=10, fig.height=8}
+daily_flux <- all_hh |>
+  group_by(site_id, date) |>
+  summarise(
+    NEE  = mean(NEE_VUT_REF, na.rm = TRUE),
+    GPP  = mean(GPP_NT_VUT_REF, na.rm = TRUE),
+    RECO = mean(RECO_NT_VUT_REF, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  pivot_longer(c(NEE, GPP, RECO), names_to = "flux", values_to = "value")
+
+ggplot(daily_flux, aes(x = date, y = value, color = flux)) +
+  geom_line(linewidth = 0.35, alpha = 0.8) +
+  facet_wrap(~ site_id, ncol = 1, scales = "free_x") +
+  labs(
+    title = "Daily Mean NEE, GPP (NT), and RECO (NT) Across Five Sites",
+    x = "Date",
+    y = expression("Flux ("*mu*"mol CO"[2]*" m"^{-2}*" s"^{-1}*")"),
+    color = "Flux"
+  ) +
+  theme_minimal()
+```
+
+## 5. Seasonal Diurnal Cycles
+
+```{r diurnal-cycles, fig.width=10, fig.height=6}
+diurnal <- all_hh |>
+  mutate(
+    m = month(time),
+    season = case_when(
+      m %in% c(12, 1, 2) ~ "DJF",
+      m %in% c(3, 4, 5)  ~ "MAM",
+      m %in% c(6, 7, 8)  ~ "JJA",
+      TRUE               ~ "SON"
+    ),
+    season = factor(season, levels = c("DJF", "MAM", "JJA", "SON"))
+  ) |>
+  group_by(site_id, season, hour) |>
+  summarise(
+    NEE = mean(NEE_VUT_REF, na.rm = TRUE),
+    LE  = mean(LE_F_MDS, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(diurnal, aes(x = hour, y = NEE, color = season)) +
+  geom_line(linewidth = 0.8) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  facet_wrap(~ site_id, scales = "free_y") +
+  labs(
+    title = "Mean Diurnal Cycle of NEE by Season",
+    x = "Hour of Day (Local Standard Time)",
+    y = expression("NEE ("*mu*"mol CO"[2]*" m"^{-2}*" s"^{-1}*")"),
+    color = "Season"
+  ) +
+  theme_minimal()
+
+ggplot(diurnal, aes(x = hour, y = LE, color = season)) +
+  geom_line(linewidth = 0.8) +
+  facet_wrap(~ site_id, scales = "free_y") +
+  labs(
+    title = "Mean Diurnal Cycle of Latent Heat Flux (LE) by Season",
+    x = "Hour of Day (Local Standard Time)",
+    y = expression("LE (W m"^{-2}*")"),
+    color = "Season"
+  ) +
+  theme_minimal()
+```
+
+## 6. Energy Balance & Site Comparison
+
+```{r energy-balance, fig.width=6, fig.height=5}
+eb_site <- "DE-RuM"
+
+eb_df <- all_hh |>
+  filter(site_id == eb_site) |>
+  transmute(
+    avail_energy = NETRAD - G_F_MDS,
+    turb_flux    = H_F_MDS + LE_F_MDS
+  ) |>
+  drop_na()
+
+eb_fit <- lm(turb_flux ~ avail_energy, data = eb_df)
+
+ggplot(eb_df, aes(x = avail_energy, y = turb_flux)) +
+  geom_point(alpha = 0.15, size = 0.8, color = "#2c7fb8") +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "black") +
+  geom_smooth(method = "lm", se = FALSE, color = "#d95f02") +
+  labs(
+    title = paste0("Energy Balance Closure at ", eb_site,
+                   " (Slope = ", round(coef(eb_fit)[2], 2), ")"),
+    x = expression("NETRAD - G (W m"^{-2}*")"),
+    y = expression("H + LE (W m"^{-2}*")")
+  ) +
+  theme_minimal()
+```
+
+The five assigned towers span four continents and five ecosystem types, with the longest records at JP-Yms (24 years) and US-NC2 (21 years) and shorter records at CN-BeO (9 years), DE-RuM (9 years), and NZ-Lau (7 years). Directly measured NEE coverage (`NEE_VUT_REF_QC == 0`) is highest at NZ-Lau and US-NC2 and lowest across JP-Yms, where `LE_F_MDS` also shows 62.02% missing values compared to under 9% missingness for fluxes at the other sites. On average, all five ecosystems act as net carbon sinks, led by the evergreen needleleaf forest US-NC2 (mean NEE = -1.38 µmol CO₂ m⁻² s⁻¹, mean GPP = 6.20 µmol CO₂ m⁻² s⁻¹) and cropland DE-RuM (-1.06 µmol CO₂ m⁻² s⁻¹), while NZ-Lau (-0.19) and CN-BeO (-0.16) are closer to carbon neutral. In the seasonal diurnal cycles, the four Northern Hemisphere sites reach peak daytime CO₂ uptake and latent heat flux (LE) in JJA (with midday LE exceeding 290 W m⁻² at US-NC2 and JP-Yms), whereas the Southern Hemisphere grassland NZ-Lau (-45.04° latitude) shows an inverted seasonal cycle with peak CO₂ uptake (~-12 µmol CO₂ m⁻² s⁻¹) and LE (~190 W m⁻²) in DJF and minimal activity in JJA. At DE-RuM, regressing turbulent fluxes (`H + LE`) against available energy (`NETRAD - G`) yields a slope of 0.71, falling below the 1:1 line and indicating an energy balance closure gap of roughly 29%. Together, these results illustrate how ecosystem type, latitude, and data coverage shape observed carbon and energy exchange across the FLUXNET network.
+
+## 7. Variable Versions, Snapshot & Citations
+
+- **Variable versions used:** `NEE_VUT_REF` (`NEE_VUT_REF_QC` for measured share), night-time partitioned `GPP_NT_VUT_REF` and `RECO_NT_VUT_REF`, consolidated meteorology (`TA_F`, `SW_IN_F`, `VPD_F`, `P_F`), and MDS gap-filled energy fluxes (`H_F_MDS`, `LE_F_MDS`, `G_F_MDS`).
+- **Snapshot & file versions:** Snapshot file `r tail(sort(basename(list.files("data/snapshots", pattern = "\\.csv$", full.names = TRUE))), 1)`; zip versions `v1.3_r1` (`JP-Yms`, `US-NC2`, `NZ-Lau`, `DE-RuM`) and `v1.3_r2` (`CN-BeO`).
+- **Network & methods citations:** Pastorello et al. (2020), *Scientific Data* 7, 225, `https://doi.org/10.1038/s41597-020-0534-3`. This work uses eddy covariance data acquired and shared by the FLUXNET community, including AmeriFlux, ICOS, and TERN/OzFlux under CC-BY-4.0.
+
+```{r print-citations, results='asis'}
+cat(readLines("data/raw/CITATIONS.txt"), sep = "\n\n")
+```
