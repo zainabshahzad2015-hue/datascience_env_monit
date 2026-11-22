@@ -23,12 +23,11 @@
 source(file.path("scripts", "block5", "block5_sites.R"))
 library(terra)
 
-# TRY trait ID, short name, unit. * = experimental map (cross-validated r < 0.5)
 traits <- data.frame(
-  id   = c(3117, 14, 50, 4, 6, 3113, 3106),
+  id   = c(3117, 14, 50, 4, 6, 3113),
   name = c("SLA", "leaf_N_mass", "leaf_N_area", "stem_density", "rooting_depth",
-           "leaf_area", "plant_height*"),
-  unit = c("m2 kg-1", "mg g-1", "g m-2", "g cm-3", "m", "mm2", "m"))
+           "leaf_area"),
+  unit = c("m2 kg-1", "mg g-1", "g m-2", "g cm-3", "m", "mm2"))
 # all 31 traits and their IDs: https://planttraits.earth
 # plant_height is stored in coarse steps of ~0.9 m: low vegetation all reads 0.68 m.
 

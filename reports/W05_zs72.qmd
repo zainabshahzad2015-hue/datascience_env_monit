@@ -26,9 +26,11 @@ site_daily  <- read_csv("../data/processed/site_daily.csv")
 
 ## 1. Data & Provenance
 
-Four complementary datasets were downloaded for all five FLUXNET towers (**JP-Yms**, **US-NC2**, **CN-BeO**, **NZ-Lau**, **DE-RuM**), plus **deadtrees.earth** for the European tower (**DE-RuM**; non-European towers are skipped by the dataset).
+Five complementary datasets were downloaded for all five FLUXNET towers (**JP-Yms**, **US-NC2**, **CN-BeO**, **NZ-Lau**, **DE-RuM**), plus **deadtrees.earth** for the European tower (**DE-RuM**; non-European towers are skipped by the dataset).
 
-**Service outage note:** At the time of analysis (`2026-11-21`), the ORNL DAAC MODIS subsetting service (`modis.ornl.gov`) was unreachable (`SSL` / server outage in both R and browser) and `05_planttraits.R` encountered a Zenodo `504 Gateway Timeout` on `stem_density`. Missing values are left as `NA` rather than filled manually, and `08_modis_ndvi_evi.R` will be retried if the service recovers before submission.
+**Service & download notes:**
+* **MODIS MOD13Q1:** At the time of analysis (`2026-11-21` to `2026-11-22`), the ORNL DAAC MODIS subsetting REST API (`https://modis.ornl.gov/rst/api/v1/products`) failed the SSL handshake (`SEC_E_UNTRUSTED_ROOT`), so `08_modis_ndvi_evi.R` could not download NDVI/EVI. Missing values are left as `NA` rather than filled manually.
+* **PlantTraits:** Six non-experimental traits (`SLA`, `leaf_N_mass`, `leaf_N_area`, `stem_density`, `rooting_depth`, `leaf_area`) were downloaded via `05_planttraits.R` on `2026-11-22`. The experimental `plant_height*` map (TRY 3106) was omitted from `05_planttraits.R` after repeated `/vsicurl/` read failures on Zenodo.
 
 | Dataset | Source | Resolution | Period | Accessed | Citation |
 |---|---|---|---|---|---|
@@ -36,9 +38,10 @@ Four complementary datasets were downloaded for all five FLUXNET towers (**JP-Ym
 | **WorldClim 2.1** | worldclim.org | 5′ (~9 km) | 1970–2000 (climatology) | 2026-11-21 | Fick & Hijmans (2017) *Int. J. Climatol.* 37, 4302–4315 |
 | **Dheed** | Zenodo (doi:10.5281/zenodo.14884254) | 0.25° (~28 km), daily | 1950–2023 | 2026-11-21 | Weynants et al. (2025) *ESSD* 17, 6621 |
 | **SoilGrids 2.0** | ISRIC (`rest.isric.org`) | 250 m (0–30 cm topsoil) | Static | 2026-11-21 | Poggio et al. (2021) *SOIL* 7, 217–240 |
+| **PlantTraits** | `planttraits.earth` / Zenodo (doi:10.5281/zenodo.14646322) | 1 km (community-weighted mean) | Static | 2026-11-22 | Lusk et al. (2026) *Nat. Commun.* 17, 1203 |
 | **iNaturalist** | `api.inaturalist.org/v1` | 5 km radius (research-grade) | ~2008–2026 | 2026-11-21 | iNaturalist contributors (2026), accessed 2026-11-21 |
 | **deadtrees.earth** | deadtrees.earth | 10 m, yearly (Europe only; DE-RuM) | 2017–2025 | 2026-11-21 | Mosig et al. (2026) *Remote Sens. Environ.* 332, 115027 |
-| **MODIS MOD13Q1** | NASA LP DAAC / ORNL DAAC | 250 m (9 × 9 window), 16-day | 2000–today *(unavailable: server down)* | 2026-11-21 | Didan (2021) doi:10.5067/MODIS/MOD13Q1.061 |
+| **MODIS MOD13Q1** | NASA LP DAAC / ORNL DAAC | 250 m (9 × 9 window), 16-day | 2000–today *(unavailable: SSL error)* | 2026-11-22 | Didan (2021) doi:10.5067/MODIS/MOD13Q1.061 |
 
 ---
 
@@ -50,7 +53,7 @@ site_static |>
     `Site ID` = site_id,
     `IGBP` = igbp,
     `Country` = country,
-    `Years` = first_year,
+    `First Year` = first_year,
     `Last Year` = last_year,
     `BIO1 (°C)` = BIO1,
     `BIO4 (°C)` = BIO4,
@@ -58,11 +61,17 @@ site_static |>
     `BIO15 (%)` = BIO15,
     `Clay (%)` = soil0_30_clay,
     `Sand (%)` = soil0_30_sand,
-    `SOC (g/kg)` = soil0_30_soc,
+    `SOC (g kg⁻¹)` = soil0_30_soc,
     `pH (H2O)` = soil0_30_phh2o,
-    `BD (kg/dm³)` = soil0_30_bdod,
-    `N (g/kg)` = soil0_30_nitrogen,
-    `CEC (cmol(c)/kg)` = soil0_30_cec,
+    `BD (kg dm⁻³)` = soil0_30_bdod,
+    `N (g kg⁻¹)` = soil0_30_nitrogen,
+    `CEC (cmol(c) kg⁻¹)` = soil0_30_cec,
+    `SLA (m² kg⁻¹)` = SLA,
+    `Leaf N mass (mg g⁻¹)` = leaf_N_mass,
+    `Leaf N area (g m⁻²)` = leaf_N_area,
+    `Stem density (g cm⁻³)` = stem_density,
+    `Rooting depth (m)` = rooting_depth,
+    `Leaf area (mm²)` = leaf_area,
     `iNat Obs (n)` = n_obs,
     `iNat Species (n)` = n_species,
     `Plant Species (n)` = n_plant_species
@@ -91,7 +100,7 @@ if (has_modis) {
     ) +
     theme_minimal()
 } else {
-  cat("**Note:** MODIS MOD13Q1 columns (`ndvi`, `evi`) are absent because `modis.ornl.gov` was down during data collection. Daily GPP is shown below without satellite greenness.\n")
+  cat("**Note:** MODIS MOD13Q1 columns (`ndvi`, `evi`) are absent because `modis.ornl.gov` returned an SSL certificate error during data collection. Daily GPP is shown below without satellite greenness.\n")
   site_daily |>
     mutate(date = as.Date(date)) |>
     ggplot(aes(x = date, y = GPP_NT_VUT_REF)) +
@@ -155,6 +164,7 @@ Across n = 5 towers and 70 complete tower-years (>= 350 days), most observed yea
 * **FLUXNET tower footprint (~100 m – 1 km):** The eddy-covariance tower measures net fluxes over the upwind vegetation canopy at a local scale of roughly 100 m to 1 km.
 * **deadtrees.earth (10 m, 2 × 2 km window):** Finer than the tower footprint, resolving individual canopy gaps and standing deadwood within a 2 × 2 km box around **DE-RuM**.
 * **SoilGrids 2.0 (250 m) & MODIS MOD13Q1 (250 m, 9 × 9 window):** SoilGrids is comparable to the core tower footprint, whereas a 9 × 9 MODIS window (~2 × 2 km) averages across a slightly broader landscape.
+* **PlantTraits (1 km):** Matches the upper end of a typical flux tower footprint, though modelled community-weighted means can extrapolate poorly in croplands (such as **DE-RuM**) or heterogeneous landscapes.
 * **WorldClim 2.1 (5′ ≈ 9 km):** Much coarser than the tower footprint; a 9 km cell can smooth over local topography, elevation gradients, or microclimates, which can introduce systematic offsets when subtracting `BIO1` or `BIO12` from tower `TA_F` and `P_F`.
 * **Dheed (0.25° ≈ 28 km):** Far coarser than the tower footprint; useful for identifying regional compound hot-dry events, though local tower conditions (`TA_F`, `VPD_F`) must still be checked to confirm whether the tower itself experienced stress.
 * **iNaturalist (5 km radius):** Reflects citizen-science observations within 5 km, which are biased toward roads, trails, and accessible areas rather than systematic ecological plots inside the flux footprint.

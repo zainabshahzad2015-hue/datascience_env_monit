@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Zainab Shahzad">
-<meta name="dcterms.date" content="2026-11-21">
+<meta name="dcterms.date" content="2026-11-22">
 
 <title>Block 5: Complementary Data &amp; Neighbourhood Analysis</title>
 <style>
@@ -2242,7 +2242,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 21, 2026</p>
+      <p class="date">November 22, 2026</p>
     </div>
   </div>
   
@@ -2270,8 +2270,8 @@ vertical-align: -.125em;
 </div>
 <section id="data-provenance" class="level2">
 <h2 class="anchored" data-anchor-id="data-provenance">1. Data &amp; Provenance</h2>
-<p>Four complementary datasets were downloaded for all five FLUXNET towers (<strong>JP-Yms</strong>, <strong>US-NC2</strong>, <strong>CN-BeO</strong>, <strong>NZ-Lau</strong>, <strong>DE-RuM</strong>), plus <strong>deadtrees.earth</strong> for the European tower (<strong>DE-RuM</strong>; non-European towers are skipped by the dataset).</p>
-<p><strong>Service outage note:</strong> At the time of analysis (<code>2026-11-21</code>), the ORNL DAAC MODIS subsetting service (<code>modis.ornl.gov</code>) was unreachable (<code>SSL</code> / server outage in both R and browser) and <code>05_planttraits.R</code> encountered a Zenodo <code>504 Gateway Timeout</code> on <code>stem_density</code>. Missing values are left as <code>NA</code> rather than filled manually, and <code>08_modis_ndvi_evi.R</code> will be retried if the service recovers before submission.</p>
+<p>Five complementary datasets were downloaded for all five FLUXNET towers (<strong>JP-Yms</strong>, <strong>US-NC2</strong>, <strong>CN-BeO</strong>, <strong>NZ-Lau</strong>, <strong>DE-RuM</strong>), plus <strong>deadtrees.earth</strong> for the European tower (<strong>DE-RuM</strong>; non-European towers are skipped by the dataset).</p>
+<p><strong>Service &amp; download notes:</strong> * <strong>MODIS MOD13Q1:</strong> At the time of analysis (<code>2026-11-21</code> to <code>2026-11-22</code>), the ORNL DAAC MODIS subsetting REST API (<code>https://modis.ornl.gov/rst/api/v1/products</code>) failed the SSL handshake (<code>SEC_E_UNTRUSTED_ROOT</code>), so <code>08_modis_ndvi_evi.R</code> could not download NDVI/EVI. Missing values are left as <code>NA</code> rather than filled manually. * <strong>PlantTraits:</strong> Six non-experimental traits (<code>SLA</code>, <code>leaf_N_mass</code>, <code>leaf_N_area</code>, <code>stem_density</code>, <code>rooting_depth</code>, <code>leaf_area</code>) were downloaded via <code>05_planttraits.R</code> on <code>2026-11-22</code>. The experimental <code>plant_height*</code> map (TRY 3106) was omitted from <code>05_planttraits.R</code> after repeated <code>/vsicurl/</code> read failures on Zenodo.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 16%">
@@ -2325,6 +2325,14 @@ vertical-align: -.125em;
 <td>Poggio et al. (2021) <em>SOIL</em> 7, 217–240</td>
 </tr>
 <tr class="odd">
+<td><strong>PlantTraits</strong></td>
+<td><code>planttraits.earth</code> / Zenodo (doi:10.5281/zenodo.14646322)</td>
+<td>1 km (community-weighted mean)</td>
+<td>Static</td>
+<td>2026-11-22</td>
+<td>Lusk et al. (2026) <em>Nat. Commun.</em> 17, 1203</td>
+</tr>
+<tr class="even">
 <td><strong>iNaturalist</strong></td>
 <td><code>api.inaturalist.org/v1</code></td>
 <td>5 km radius (research-grade)</td>
@@ -2332,7 +2340,7 @@ vertical-align: -.125em;
 <td>2026-11-21</td>
 <td>iNaturalist contributors (2026), accessed 2026-11-21</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>deadtrees.earth</strong></td>
 <td>deadtrees.earth</td>
 <td>10 m, yearly (Europe only; DE-RuM)</td>
@@ -2340,12 +2348,12 @@ vertical-align: -.125em;
 <td>2026-11-21</td>
 <td>Mosig et al. (2026) <em>Remote Sens. Environ.</em> 332, 115027</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>MODIS MOD13Q1</strong></td>
 <td>NASA LP DAAC / ORNL DAAC</td>
 <td>250 m (9 × 9 window), 16-day</td>
-<td>2000–today <em>(unavailable: server down)</em></td>
-<td>2026-11-21</td>
+<td>2000–today <em>(unavailable: SSL error)</em></td>
+<td>2026-11-22</td>
 <td>Didan (2021) doi:10.5067/MODIS/MOD13Q1.061</td>
 </tr>
 </tbody>
@@ -2362,7 +2370,7 @@ vertical-align: -.125em;
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Site ID</span><span class="st">`</span> <span class="ot">=</span> site_id,</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">IGBP</span><span class="st">`</span> <span class="ot">=</span> igbp,</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Country</span><span class="st">`</span> <span class="ot">=</span> country,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Years</span><span class="st">`</span> <span class="ot">=</span> first_year,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">First Year</span><span class="st">`</span> <span class="ot">=</span> first_year,</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Last Year</span><span class="st">`</span> <span class="ot">=</span> last_year,</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">BIO1 (°C)</span><span class="st">`</span> <span class="ot">=</span> BIO1,</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">BIO4 (°C)</span><span class="st">`</span> <span class="ot">=</span> BIO4,</span>
@@ -2370,47 +2378,59 @@ vertical-align: -.125em;
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">BIO15 (%)</span><span class="st">`</span> <span class="ot">=</span> BIO15,</span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Clay (%)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_clay,</span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Sand (%)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_sand,</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">SOC (g/kg)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_soc,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">SOC (g kg⁻¹)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_soc,</span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">pH (H2O)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_phh2o,</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">BD (kg/dm³)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_bdod,</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">N (g/kg)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_nitrogen,</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">CEC (cmol(c)/kg)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_cec,</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">iNat Obs (n)</span><span class="st">`</span> <span class="ot">=</span> n_obs,</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">iNat Species (n)</span><span class="st">`</span> <span class="ot">=</span> n_species,</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Plant Species (n)</span><span class="st">`</span> <span class="ot">=</span> n_plant_species</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">2</span>, <span class="at">caption =</span> <span class="st">&quot;Static environmental portrait of the five assigned FLUXNET towers.&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">BD (kg dm⁻³)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_bdod,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">N (g kg⁻¹)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_nitrogen,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">CEC (cmol(c) kg⁻¹)</span><span class="st">`</span> <span class="ot">=</span> soil0_30_cec,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">SLA (m² kg⁻¹)</span><span class="st">`</span> <span class="ot">=</span> SLA,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Leaf N mass (mg g⁻¹)</span><span class="st">`</span> <span class="ot">=</span> leaf_N_mass,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Leaf N area (g m⁻²)</span><span class="st">`</span> <span class="ot">=</span> leaf_N_area,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Stem density (g cm⁻³)</span><span class="st">`</span> <span class="ot">=</span> stem_density,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Rooting depth (m)</span><span class="st">`</span> <span class="ot">=</span> rooting_depth,</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Leaf area (mm²)</span><span class="st">`</span> <span class="ot">=</span> leaf_area,</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">iNat Obs (n)</span><span class="st">`</span> <span class="ot">=</span> n_obs,</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">iNat Species (n)</span><span class="st">`</span> <span class="ot">=</span> n_species,</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Plant Species (n)</span><span class="st">`</span> <span class="ot">=</span> n_plant_species</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">2</span>, <span class="at">caption =</span> <span class="st">&quot;Static environmental portrait of the five assigned FLUXNET towers.&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <caption>Static environmental portrait of the five assigned FLUXNET towers.</caption>
 <colgroup>
-<col style="width: 3%">
+<col style="width: 2%">
+<col style="width: 1%">
 <col style="width: 2%">
 <col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 2%">
 <col style="width: 2%">
 <col style="width: 4%">
+<col style="width: 2%">
 <col style="width: 4%">
-<col style="width: 4%">
+<col style="width: 3%">
 <col style="width: 5%">
 <col style="width: 4%">
-<col style="width: 4%">
-<col style="width: 4%">
-<col style="width: 5%">
-<col style="width: 4%">
-<col style="width: 5%">
-<col style="width: 4%">
-<col style="width: 8%">
 <col style="width: 6%">
-<col style="width: 8%">
-<col style="width: 8%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 5%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 5%">
+<col style="width: 5%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Site ID</th>
 <th style="text-align: left;">IGBP</th>
 <th style="text-align: left;">Country</th>
-<th style="text-align: right;">Years</th>
+<th style="text-align: right;">First Year</th>
 <th style="text-align: right;">Last Year</th>
 <th style="text-align: right;">BIO1 (°C)</th>
 <th style="text-align: right;">BIO4 (°C)</th>
@@ -2418,11 +2438,17 @@ vertical-align: -.125em;
 <th style="text-align: right;">BIO15 (%)</th>
 <th style="text-align: right;">Clay (%)</th>
 <th style="text-align: right;">Sand (%)</th>
-<th style="text-align: right;">SOC (g/kg)</th>
+<th style="text-align: right;">SOC (g kg⁻¹)</th>
 <th style="text-align: right;">pH (H2O)</th>
-<th style="text-align: right;">BD (kg/dm³)</th>
-<th style="text-align: right;">N (g/kg)</th>
-<th style="text-align: right;">CEC (cmol(c)/kg)</th>
+<th style="text-align: right;">BD (kg dm⁻³)</th>
+<th style="text-align: right;">N (g kg⁻¹)</th>
+<th style="text-align: right;">CEC (cmol(c) kg⁻¹)</th>
+<th style="text-align: right;">SLA (m² kg⁻¹)</th>
+<th style="text-align: right;">Leaf N mass (mg g⁻¹)</th>
+<th style="text-align: right;">Leaf N area (g m⁻²)</th>
+<th style="text-align: right;">Stem density (g cm⁻³)</th>
+<th style="text-align: right;">Rooting depth (m)</th>
+<th style="text-align: right;">Leaf area (mm²)</th>
 <th style="text-align: right;">iNat Obs (n)</th>
 <th style="text-align: right;">iNat Species (n)</th>
 <th style="text-align: right;">Plant Species (n)</th>
@@ -2446,6 +2472,12 @@ vertical-align: -.125em;
 <td style="text-align: right;">1.13</td>
 <td style="text-align: right;">2.15</td>
 <td style="text-align: right;">18.50</td>
+<td style="text-align: right;">15.31</td>
+<td style="text-align: right;">18.28</td>
+<td style="text-align: right;">1.27</td>
+<td style="text-align: right;">0.52</td>
+<td style="text-align: right;">0.66</td>
+<td style="text-align: right;">1334.41</td>
 <td style="text-align: right;">146</td>
 <td style="text-align: right;">107</td>
 <td style="text-align: right;">21</td>
@@ -2467,6 +2499,12 @@ vertical-align: -.125em;
 <td style="text-align: right;">1.52</td>
 <td style="text-align: right;">3.20</td>
 <td style="text-align: right;">18.52</td>
+<td style="text-align: right;">16.98</td>
+<td style="text-align: right;">18.91</td>
+<td style="text-align: right;">1.19</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: right;">0.58</td>
+<td style="text-align: right;">1504.96</td>
 <td style="text-align: right;">38</td>
 <td style="text-align: right;">33</td>
 <td style="text-align: right;">7</td>
@@ -2481,6 +2519,12 @@ vertical-align: -.125em;
 <td style="text-align: right;">1118.11</td>
 <td style="text-align: right;">546</td>
 <td style="text-align: right;">134.42</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
+<td style="text-align: right;">NA</td>
 <td style="text-align: right;">NA</td>
 <td style="text-align: right;">NA</td>
 <td style="text-align: right;">NA</td>
@@ -2509,6 +2553,12 @@ vertical-align: -.125em;
 <td style="text-align: right;">1.07</td>
 <td style="text-align: right;">2.17</td>
 <td style="text-align: right;">30.25</td>
+<td style="text-align: right;">18.00</td>
+<td style="text-align: right;">22.06</td>
+<td style="text-align: right;">1.41</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">546.24</td>
 <td style="text-align: right;">60</td>
 <td style="text-align: right;">45</td>
 <td style="text-align: right;">30</td>
@@ -2530,6 +2580,12 @@ vertical-align: -.125em;
 <td style="text-align: right;">1.33</td>
 <td style="text-align: right;">1.79</td>
 <td style="text-align: right;">16.62</td>
+<td style="text-align: right;">20.72</td>
+<td style="text-align: right;">25.27</td>
+<td style="text-align: right;">1.22</td>
+<td style="text-align: right;">0.33</td>
+<td style="text-align: right;">0.47</td>
+<td style="text-align: right;">1185.55</td>
 <td style="text-align: right;">513</td>
 <td style="text-align: right;">285</td>
 <td style="text-align: right;">93</td>
@@ -2561,7 +2617,7 @@ vertical-align: -.125em;
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;**Note:** MODIS MOD13Q1 columns (`ndvi`, `evi`) are absent because `modis.ornl.gov` was down during data collection. Daily GPP is shown below without satellite greenness.</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;**Note:** MODIS MOD13Q1 columns (`ndvi`, `evi`) are absent because `modis.ornl.gov` returned an SSL certificate error during data collection. Daily GPP is shown below without satellite greenness.</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  site_daily <span class="sc">|&gt;</span></span>
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">as.Date</span>(date)) <span class="sc">|&gt;</span></span>
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> GPP_NT_VUT_REF)) <span class="sc">+</span></span>
@@ -2576,7 +2632,7 @@ vertical-align: -.125em;
 <span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>**Note:** MODIS MOD13Q1 columns (`ndvi`, `evi`) are absent because `modis.ornl.gov` was down during data collection. Daily GPP is shown below without satellite greenness.</code></pre>
+<pre><code>**Note:** MODIS MOD13Q1 columns (`ndvi`, `evi`) are absent because `modis.ornl.gov` returned an SSL certificate error during data collection. Daily GPP is shown below without satellite greenness.</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -2643,6 +2699,7 @@ vertical-align: -.125em;
 <li><strong>FLUXNET tower footprint (~100 m – 1 km):</strong> The eddy-covariance tower measures net fluxes over the upwind vegetation canopy at a local scale of roughly 100 m to 1 km.</li>
 <li><strong>deadtrees.earth (10 m, 2 × 2 km window):</strong> Finer than the tower footprint, resolving individual canopy gaps and standing deadwood within a 2 × 2 km box around <strong>DE-RuM</strong>.</li>
 <li><strong>SoilGrids 2.0 (250 m) &amp; MODIS MOD13Q1 (250 m, 9 × 9 window):</strong> SoilGrids is comparable to the core tower footprint, whereas a 9 × 9 MODIS window (~2 × 2 km) averages across a slightly broader landscape.</li>
+<li><strong>PlantTraits (1 km):</strong> Matches the upper end of a typical flux tower footprint, though modelled community-weighted means can extrapolate poorly in croplands (such as <strong>DE-RuM</strong>) or heterogeneous landscapes.</li>
 <li><strong>WorldClim 2.1 (5′ ≈ 9 km):</strong> Much coarser than the tower footprint; a 9 km cell can smooth over local topography, elevation gradients, or microclimates, which can introduce systematic offsets when subtracting <code>BIO1</code> or <code>BIO12</code> from tower <code>TA_F</code> and <code>P_F</code>.</li>
 <li><strong>Dheed (0.25° ≈ 28 km):</strong> Far coarser than the tower footprint; useful for identifying regional compound hot-dry events, though local tower conditions (<code>TA_F</code>, <code>VPD_F</code>) must still be checked to confirm whether the tower itself experienced stress.</li>
 <li><strong>iNaturalist (5 km radius):</strong> Reflects citizen-science observations within 5 km, which are biased toward roads, trails, and accessible areas rather than systematic ecological plots inside the flux footprint.</li>
